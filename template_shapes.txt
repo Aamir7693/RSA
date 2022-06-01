@@ -1,0 +1,269 @@
+(comment "CPSA 3.6.9")
+(comment "Extracted shapes")
+
+(herald "EKKE")
+
+(comment "CPSA 3.6.9")
+
+(comment "All input read from template.scm")
+
+(defprotocol RSA basic
+  (defrole init
+    (vars (a b name) (ea akey) (r skey) (c1 c2 text))
+    (trace (send (cat a (enc ea (ltk a b))))
+      (recv (enc (enc r ea) (ltk a b))) (send (enc c1 r))
+      (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (defrole resp
+    (vars (a b name) (r skey) (ea akey) (c1 c2 text))
+    (trace (recv (cat a (enc ea (ltk a b))))
+      (send (enc (enc r ea) (ltk a b))) (recv (enc c1 r))
+      (send (enc c1 c2 r)) (recv (enc c2 r)))
+    (uniq-orig r)))
+
+(defskeleton RSA
+  (vars (c1 c2 text) (a b name) (r skey) (ea akey))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (non-orig (ltk a b))
+  (uniq-orig c1 ea)
+  (traces
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (label 0)
+  (unrealized (0 1))
+  (origs (c1 (0 2)) (ea (0 0)))
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton RSA
+  (vars (c1 c2 text) (a b name) (r skey) (ea akey))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (defstrand resp 4 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (precedes ((0 0) (1 0)) ((0 2) (1 2)) ((1 1) (0 1)) ((1 3) (0 3)))
+  (non-orig (ltk a b))
+  (uniq-orig c1 r ea)
+  (operation encryption-test (displaced 1 2 resp 4) (enc c1 c2 r) (0 3))
+  (traces
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r)))
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r))))
+  (label 2)
+  (parent 0)
+  (unrealized)
+  (shape)
+  (maps ((0) ((a a) (b b) (ea ea) (c1 c1) (r r) (c2 c2))))
+  (origs (r (1 1)) (c1 (0 2)) (ea (0 0))))
+
+(comment "Nothing left to do")
+
+(defprotocol RSA basic
+  (defrole init
+    (vars (a b name) (ea akey) (r skey) (c1 c2 text))
+    (trace (send (cat a (enc ea (ltk a b))))
+      (recv (enc (enc r ea) (ltk a b))) (send (enc c1 r))
+      (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (defrole resp
+    (vars (a b name) (r skey) (ea akey) (c1 c2 text))
+    (trace (recv (cat a (enc ea (ltk a b))))
+      (send (enc (enc r ea) (ltk a b))) (recv (enc c1 r))
+      (send (enc c1 c2 r)) (recv (enc c2 r)))
+    (uniq-orig r)))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r))))
+  (label 4)
+  (unrealized (0 0) (0 2) (0 4))
+  (origs (r (0 1)) (c2 (0 3)))
+  (comment "1 in cohort - 1 not yet seen"))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (precedes ((0 1) (1 1)) ((0 3) (1 3)) ((1 0) (0 0)) ((1 2) (0 2))
+    ((1 4) (0 4)))
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (operation encryption-test (displaced 1 2 init 5) (enc c2 r) (0 4))
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r)))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (label 13)
+  (parent 4)
+  (unrealized)
+  (shape)
+  (maps ((0) ((a a) (b b) (r r) (c2 c2) (ea ea) (c1 c1))))
+  (origs (r (0 1)) (c2 (0 3))))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (defstrand init 1 (a a) (b b) (ea ea))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (precedes ((0 1) (2 1)) ((0 3) (2 3)) ((1 0) (0 0)) ((2 2) (0 2))
+    ((2 4) (0 4)))
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (operation encryption-test (displaced 2 3 init 5) (enc c2 r) (0 4))
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r)))
+    ((send (cat a (enc ea (ltk a b)))))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (label 20)
+  (parent 4)
+  (unrealized)
+  (shape)
+  (maps ((0) ((a a) (b b) (r r) (c2 c2) (ea ea) (c1 c1))))
+  (origs (r (0 1)) (c2 (0 3))))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (defstrand init 3 (c1 c1) (a a) (b b) (r r) (ea ea))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (precedes ((0 1) (1 1)) ((0 1) (2 1)) ((0 3) (2 3)) ((1 0) (0 0))
+    ((1 2) (0 2)) ((2 4) (0 4)))
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (operation encryption-test (displaced 3 0 resp 4) (enc c1-0 c2 r)
+    (2 3))
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r)))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (label 23)
+  (parent 4)
+  (unrealized)
+  (shape)
+  (maps ((0) ((a a) (b b) (r r) (c2 c2) (ea ea) (c1 c1))))
+  (origs (r (0 1)) (c2 (0 3))))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (defstrand init 3 (c1 c1) (a a) (b b) (r r) (ea ea))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (precedes ((0 1) (1 1)) ((0 1) (2 1)) ((0 3) (2 3)) ((1 2) (0 2))
+    ((2 0) (0 0)) ((2 4) (0 4)))
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (operation encryption-test (displaced 3 0 resp 4) (enc c1-0 c2 r)
+    (2 3))
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r)))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (label 25)
+  (parent 4)
+  (unrealized)
+  (shape)
+  (maps ((0) ((a a) (b b) (r r) (c2 c2) (ea ea) (c1 c1))))
+  (origs (r (0 1)) (c2 (0 3))))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (defstrand init 1 (a a) (b b) (ea ea))
+  (defstrand init 3 (c1 c1) (a a) (b b) (r r) (ea ea))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (precedes ((0 1) (2 1)) ((0 1) (3 1)) ((0 3) (3 3)) ((1 0) (0 0))
+    ((2 2) (0 2)) ((3 4) (0 4)))
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (operation encryption-test (displaced 4 0 resp 4) (enc c1-0 c2 r)
+    (3 3))
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r)))
+    ((send (cat a (enc ea (ltk a b)))))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)))
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (label 28)
+  (parent 4)
+  (unrealized)
+  (shape)
+  (maps ((0) ((a a) (b b) (r r) (c2 c2) (ea ea) (c1 c1))))
+  (origs (r (0 1)) (c2 (0 3))))
+
+(comment "Nothing left to do")
+
+(defprotocol RSA basic
+  (defrole init
+    (vars (a b name) (ea akey) (r skey) (c1 c2 text))
+    (trace (send (cat a (enc ea (ltk a b))))
+      (recv (enc (enc r ea) (ltk a b))) (send (enc c1 r))
+      (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (defrole resp
+    (vars (a b name) (r skey) (ea akey) (c1 c2 text))
+    (trace (recv (cat a (enc ea (ltk a b))))
+      (send (enc (enc r ea) (ltk a b))) (recv (enc c1 r))
+      (send (enc c1 c2 r)) (recv (enc c2 r)))
+    (uniq-orig r)))
+
+(defskeleton RSA
+  (vars (c1 c2 text) (a b name) (r skey) (ea akey))
+  (defstrand init 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (deflistener ea)
+  (deflistener r)
+  (non-orig (ltk a b))
+  (uniq-orig c1 ea)
+  (traces
+    ((send (cat a (enc ea (ltk a b)))) (recv (enc (enc r ea) (ltk a b)))
+      (send (enc c1 r)) (recv (enc c1 c2 r)) (send (enc c2 r)))
+    ((recv ea) (send ea)) ((recv r) (send r)))
+  (label 30)
+  (unrealized (0 1) (1 0))
+  (preskeleton)
+  (origs (c1 (0 2)) (ea (0 0)))
+  (comment "Not a skeleton"))
+
+(comment "Nothing left to do")
+
+(defprotocol RSA basic
+  (defrole init
+    (vars (a b name) (ea akey) (r skey) (c1 c2 text))
+    (trace (send (cat a (enc ea (ltk a b))))
+      (recv (enc (enc r ea) (ltk a b))) (send (enc c1 r))
+      (recv (enc c1 c2 r)) (send (enc c2 r))))
+  (defrole resp
+    (vars (a b name) (r skey) (ea akey) (c1 c2 text))
+    (trace (recv (cat a (enc ea (ltk a b))))
+      (send (enc (enc r ea) (ltk a b))) (recv (enc c1 r))
+      (send (enc c1 c2 r)) (recv (enc c2 r)))
+    (uniq-orig r)))
+
+(defskeleton RSA
+  (vars (c2 c1 text) (a b name) (r skey) (ea akey))
+  (defstrand resp 5 (c1 c1) (c2 c2) (a a) (b b) (r r) (ea ea))
+  (deflistener ea)
+  (deflistener r)
+  (non-orig (ltk a b))
+  (uniq-orig c2 r)
+  (traces
+    ((recv (cat a (enc ea (ltk a b)))) (send (enc (enc r ea) (ltk a b)))
+      (recv (enc c1 r)) (send (enc c1 c2 r)) (recv (enc c2 r)))
+    ((recv ea) (send ea)) ((recv r) (send r)))
+  (label 32)
+  (unrealized (0 0) (0 2) (0 4) (2 0))
+  (preskeleton)
+  (origs (r (0 1)) (c2 (0 3)))
+  (comment "Not a skeleton"))
+
+(comment "Nothing left to do")
